@@ -18,11 +18,11 @@ import {
   IconInputText,
   CustomUIModal,
 } from '../../commonrender/CommonRender'
-
+import * as AuthAPI from '../../features/auth/authAPI'
 import setVectorIcon from '../../components/VectorComponents'
 import {Button, Input, CheckBox} from 'react-native-elements'
 import NavigationHeader from '../../components/NavigationHeader'
-
+import {store} from '../../store';
 import {
   getFontSize,
   getResHeight,
@@ -442,7 +442,12 @@ export class Profile extends Component {
               }}>
               <TouchableOpacity
               style={{flexDirection:"row",alignItems:"center",justifyContent: 'center'}}
-                  // onPress={() => this.props.navigation.navigate('MyCart')}
+                  onPress={async() => {
+                    await AuthAPI.setUserSession(false);
+                    this.props.navigation.navigate('Login')
+                    await store.dispatch({type: 'RESSET_STORE'});
+                   
+                  }}
                   >
                   <Text>
                     {' '}

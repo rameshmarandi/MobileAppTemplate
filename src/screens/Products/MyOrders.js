@@ -169,8 +169,9 @@ export class MyOrders extends Component {
           style={{
             alignSelf: 'center',
             width: SCREENWIDTH,
+            // backgroundColor: 'red',
             backgroundColor: 'white',
-            marginBottom: '15%',
+            paddingBottom: '10%',
             alignSelf: 'center',
           }}>
           <View
@@ -208,7 +209,7 @@ export class MyOrders extends Component {
             />
           </View>
          <View style={{
-          marginBottom:"40%",
+          paddingBottom:"40%",
          
          }}>
          <FlatList
@@ -216,7 +217,7 @@ export class MyOrders extends Component {
             data={MostPopularData}
             containerStyle={{
               width:"100%",
-              backgroundColor:"red"
+              
             }}
             renderItem={({item, index}) => {
               return (

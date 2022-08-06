@@ -38,6 +38,7 @@ export class Categories extends Component {
     super(props)
     this.state = {
       open: false,
+      selectedID :""
     }
   }
 
@@ -220,7 +221,9 @@ export class Categories extends Component {
         ],
       },
     ]
-
+    const listOfSubCategories = this.props.subcategories.filter(
+      (i, index) => this.state?.selectedID== i?.categoryId,
+    )
     return (
       <>
         <SafeAreaView
@@ -237,7 +240,8 @@ export class Categories extends Component {
           />
           <View style={{marginTop: '5%', marginBottom: '20%'}}>
             <FlatList
-              data={categoriesData}
+              data={this.props.allcategories}
+              // data={categoriesData}
               showsVerticalScrollIndicator={false}
               contentContainerStyle={{
                 width: '100%',
@@ -246,7 +250,12 @@ export class Categories extends Component {
               renderItem={({item, index}) => {
                 return (
                   <>
-                    <CategoryComponet data={item} />
+                    <CategoryComponet data={item} 
+                    subcategories ={listOfSubCategories} 
+                    singlePress={_id => {
+                     this.setState({selectedID: _id})
+                    }}
+                    />
                   </>
                 )
               }}
@@ -266,23 +275,25 @@ export class CategoryComponet extends Component {
     }
   }
   render () {
-    const {data} = this.props
+    const {data ,subcategories, singlePress} = this.props
     const renderAccordians = () => {
       const items = []
-      for (let item of data.submenu) {
-        items.push(<Accordian title={item.title} data={item.data} />)
+      for (let item of subcategories) {
+        items.push(<Accordian title={item?.subcategoryName} data={item?.data} />)
       }
       return items
     }
     return (
       <>
-        <TouchableOpacity
+        <TouchableOpacity        
           onPress={() => {
             this.setState({open: !this.state.open})
+            singlePress(data._id)
           }}
           style={{
             height: 210,
             marginBottom: '2%',
+            backgroundColor: "red"
           }}>
           {data.renderImg}
         </TouchableOpacity>
@@ -295,10 +306,14 @@ export class CategoryComponet extends Component {
           <TouchableOpacity
             onPress={() => {              
               this.setState({open: !this.state.open})
+              singlePress(data._id)
             }}
             style={{
               flexDirection: 'row',
               alignItems: 'center',
+            }}>
+            <View style={{
+              maxWidth: '80%',              
             }}>
             <Text
               style={{
@@ -307,8 +322,10 @@ export class CategoryComponet extends Component {
                 fontFamily: theme.font.latoBold,              
                 letterSpacing: 1
               }}>
-              {data.category}
+              {data.categoryName}
             </Text>
+            </View>
+            <View>
             {this.state.open == false ? (
               <>
                 <Entypo
@@ -332,6 +349,7 @@ export class CategoryComponet extends Component {
                 />
               </>
             )}
+            </View>
           </TouchableOpacity>
           <Text
             style={{
@@ -474,8 +492,16 @@ const styles = StyleSheet.create({
   },
 
 })
-const mapStateToProps = state => ({})
+const mapDispatchToProps = dispatch => {
+  return {   
+  }
+}
 
-const mapDispatchToProps = {}
+const mapStateToProps = (state, props) => {
+  return {
+    allcategories: state.Categories.allcategories,
+    subcategories: state.Categories.subcategories,
+  }
+}
 
 export default connect(mapStateToProps, mapDispatchToProps)(Categories)

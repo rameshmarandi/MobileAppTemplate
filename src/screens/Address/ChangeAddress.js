@@ -505,10 +505,30 @@ export class ChangeAddress extends Component {
                       width: '80%',
                       alignSelf: 'center',
                       height: getResHeight(40),
-                      backgroundColor: theme.color.primary,
+                      backgroundColor:    !touched.name || errors.name || 
+                      !touched.mobile || errors.mobile || 
+                      !touched.email || errors.email || 
+                      !touched.houseNo || errors.houseNo || 
+                      !touched.street || errors.street || 
+                      !touched.pincode || errors.pincode || 
+                      !touched.district || errors.district || 
+                      !touched.state || errors.state? theme.color.disabled : theme.color.primary,
                       margin: '5%',
                       borderRadius: 5,
                       marginTop: '8%',
+                    }}
+                    disabled={
+                      !touched.name || errors.name || 
+                      !touched.mobile || errors.mobile || 
+                      !touched.email || errors.email || 
+                      !touched.houseNo || errors.houseNo || 
+                      !touched.street || errors.street || 
+                      !touched.pincode || errors.pincode || 
+                      !touched.district || errors.district || 
+                      !touched.state || errors.state                   
+                    }
+                    disabledStyle={{
+                      backgroundColor: theme.color.disabled
                     }}
                     titleStyle={{
                         fontFamily: theme.font.latoRegular,

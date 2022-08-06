@@ -73,9 +73,10 @@ export default class OfferCard extends Component {
             <>
              <Modal visible={this.state.showmodal} transparent={true}>
                 <ImageViewer 
-                // backgroundColor={"white"}
+                menus={({cancel})=>{this.setState({showmodal: false})}}
+                onSwipeDown={()=>{this.setState({showmodal: false})}}
                 enableSwipeDown={true}
-                onCancel={()=>{this.setState({showmodal: !this.state.showmodal})}}
+                onCancel={()=>{this.setState({showmodal: false})}}
                 imageUrls={images}/>
             </Modal>
 

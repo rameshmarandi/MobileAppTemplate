@@ -13,7 +13,7 @@ import {
   TouchableWithoutFeedback,
   NativeModules,
 } from 'react-native'
-// import {TextTrans, BtnTrans} from '../../../i18translater'
+import * as AuthAPI from '../../features/auth/authAPI'
 import {Formik} from 'formik'
 import {connect} from 'react-redux'
 import {Button, Input} from 'react-native-elements'
@@ -34,21 +34,7 @@ const registrationSchema = Yup.object().shape({
     .matches(/^[0-9]+$/, 'Only number are allowed for this field')
     .min(10, 'Number is now below 10 digits!')
     .max(10, 'Number is now above 10 digits!')
-    .required('Please  enter a valid mobile number (10 digits)'),
-  password: Yup.string()
-    .min(
-      8,
-      'Please enter at least 8 Character, 1 uppercase character and 1 number',
-    )
-    .matches(
-      /[A-Z]+/,
-      'Please enter at least 8 Character, 1 uppercase character and 1 number',
-    )
-    // .matches(/[@$!%*#?&]+/, 'Password has special characters.')
-    .matches(
-      /\d+/,
-      'Please enter at least 8 Character, 1 uppercase character and 1 number',
-    ),
+    .required('Please  enter a valid mobile number (10 digits)'), 
 })
 
 export class ForgotPassword extends Component {
@@ -56,6 +42,7 @@ export class ForgotPassword extends Component {
     super(props)
     this.state = {
       showPassword: false,
+      loader: false
     }
   }
 
@@ -92,10 +79,19 @@ export class ForgotPassword extends Component {
                 </Text>
               </View>
               <Formik
-                initialValues={{phoneNo: '', password: ''}}
+                initialValues={{phoneNo: '', otp: ''}}
                 validationSchema={registrationSchema}
                 onSubmit={async values => {
-                  this.handleLogin(values.phoneNo, values.password)
+                    try{
+
+                      this.setState({loader: true})
+                      this.props.navigation.navigate("AuthChangePassword",{
+                        mobile: values.phoneNo
+                      })
+
+                      values.phoneNo = ''                      
+                      this.setState({loader: false})
+                    }catch(e){console.tron.log(e)}
                 }}>
                 {({
                   handleChange,
@@ -160,7 +156,22 @@ export class ForgotPassword extends Component {
                           )}
                           <TouchableOpacity
                           disabled={values.phoneNo?.length !==10 ? true: false}
-                            onPress={() => {}}
+                            onPress={async() => {
+                              try {                                          
+                                const payload = {
+                                  mobile: values.phoneNo,                                           
+                                }
+                                console.tron.log("Before")
+                                const res = await this.props.generateOtpAPI(payload)
+                                if(res.payload){
+                                  alert(`Your OTP is: ${res.payload.otp}`)
+                                }else{
+                                  alert("Please try again..")
+                                }                                          
+                              } catch (error) {
+                                console.tron.log(errors)
+                              }
+                            }}
                             style={{
                               flexDirection: 'row',
                               alignItems: 'center',
@@ -171,7 +182,7 @@ export class ForgotPassword extends Component {
                             <Text
                               style={{
                                 fontSize: getFontSize(13),
-                                color: theme.color.darkGray,
+                                color: values.phoneNo?.length !==10 ? theme.color.darkGray : theme.color.primary,
                                 fontFamily: theme.font.latoBold
                               }}>
                               OTP
@@ -183,8 +194,7 @@ export class ForgotPassword extends Component {
                       <View
                         style={{
                           marginBottom: '3%',
-                          width: '100%',
-                          // backgroundColor: 'red'
+                          width: '100%',                        
                         }}>
                         <Text
                           style={{
@@ -199,6 +209,8 @@ export class ForgotPassword extends Component {
                         <View>
                           <TextInput
                             value={values.otp}
+                            keyboardType={'numeric'}
+                            maxLength={4}
                             onFocus={() => setFieldTouched('otp', true)}
                             onChangeText={text => setFieldValue('otp', text)}
                             style={{
@@ -232,6 +244,8 @@ export class ForgotPassword extends Component {
                           }}>
                           <Text
                             style={{
+                              position: 'absolute',
+                              right : 0,
                               textAlign: 'right',
                               fontSize: getFontSize(12.5),
                               color: theme.color.pink,
@@ -244,32 +258,10 @@ export class ForgotPassword extends Component {
                       </View>
 
                       <Button
+                      loader={this.state.loader}
                         title='Next'
-                        type='solid'
-                        // icon={setVectorIcon({
-                        //   type: 'AntDesign',
-                        //   name: 'arrowright',
-                        //   size: getFontSize(22),
-                        //   color:
-                        //     !touched.MobileNo ||
-                        //     errors.MobileNo ||
-                        //     this.state.pressLogin
-                        //       ? '#AAAAAA'
-                        //       : 'white',
-                        //   style: {
-                        //     marginLeft: 5,
-                        //   },
-                        // })}
-                        // iconRight={true}
-                        onPress={()=>this.props.navigation.navigate("AuthChangePassword")}
-                        // disabled={
-                        //   !touched.MobileNo ||
-                        //   errors.MobileNo ||
-                        //   this.state.pressLogin
-                        // }
-                        disabledStyle={{
-                          backgroundColor: 'rgba(235, 163, 0, .2)',
-                        }}
+                        type='solid'                        
+                        onPress={handleSubmit}                        
                         containerStyle={[
                           {
                             width: '100%',
@@ -277,18 +269,25 @@ export class ForgotPassword extends Component {
                             marginTop: '5%',
                             overflow: 'hidden',
                             opacity: 0.9,
-                          },
-                          !this.state.pressLogin && {elevation: 0},
+                            marginTop: '18%'
+                          },                       
                         ]}
+                        disabled={!touched.otp || errors.otp || !touched.phoneNo || errors.phoneNo || values.otp?.length <4}
+                        disabledStyle={{
+                          backgroundColor: theme.color.disabled
+                        }}
+                        disabledTitleStyle={{
+                          color:theme.color.dimGray
+                        }}
                         titleStyle={{
                             fontFamily: theme.font.latoRegular,
                           fontSize: getFontSize(16),
-                          color: 'white',
-                        }}
+                          color:  !touched.otp || errors.otp || !touched.phoneNo || errors.phoneNo || values.otp?.length <4?theme.color.dimGray:'white',
+                        }}                        
                         buttonStyle={{
                           width: '100%',
                           height: getResHeight(40),
-                          backgroundColor: '#62C9C9',
+                          backgroundColor:  !touched.otp || errors.otp || !touched.phoneNo || errors.phoneNo || values.otp?.length <4?theme.color.disabled: theme.color.primary,
                           borderRadius: 8,
                         }}
                       />
@@ -421,8 +420,14 @@ export class ForgotPassword extends Component {
   }
 }
 
-const mapStateToProps = state => ({})
+const mapDispatchToProps = dispatch => {
+  return {
+    generateOtpAPI: payload => dispatch(AuthAPI.generateOtpAPI(payload))
+  }
+}
 
-const mapDispatchToProps = {}
+const mapStateToProps = (state, props) => {
+  return {}
+}
 
 export default connect(mapStateToProps, mapDispatchToProps)(ForgotPassword)

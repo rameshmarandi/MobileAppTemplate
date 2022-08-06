@@ -1,6 +1,9 @@
 const theme = {
     color: {
-        primary: '#62C9C9', // ok    
+        primary: "#D21D5A", // ok   
+        // primary: '#62C9C9', // ok   
+        disabled: 'rgba(210,29,90,.5)',
+        // disabled: 'rgba(98,201,201, .5)',
         dimPrimary: '#E0F2F7',   
         dimLight: '#666666',
         pink : "#FF86A0",

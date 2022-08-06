@@ -34,12 +34,55 @@ import {Formik} from 'formik'
 import theme from '../../theme'
 import * as Yup from 'yup'
 const LoginSchema = Yup.object().shape({
-  mobile: Yup.string()
-    .matches(/^[0-9]+$/, 'Only number are allowed for this field')
-    .min(10, 'Number is now below 10 digits!')
-    .max(10, 'Number is now above 10 digits!')
-    .required('Mobile Number is required!'),
-  password: Yup.string().required('Password is required!'),
+  oldPassword: Yup.string()
+  .min(
+    8,
+    'Please enter valid password!',
+  )
+  .matches(
+    /[A-Z]+/,
+    'Please enter valid password!',
+  )
+  // .matches(/[@$!%*#?&]+/, 'Password has special characters.')
+  .matches(
+    /\d+/,
+    'Please enter valid password!',
+  ),
+  newPassword: Yup.string()
+  .min(
+    8,
+    'Please enter at least 8 Character, 1 uppercase character and 1 number',
+  )
+  .matches(
+    /[A-Z]+/,
+    'Please enter at least 8 Character, 1 uppercase character and 1 number',
+  )
+  // .matches(/[@$!%*#?&]+/, 'Password has special characters.')
+  .matches(
+    /\d+/,
+    'Please enter at least 8 Character, 1 uppercase character and 1 number',
+  ),
+cNewPassword: Yup.string()
+  .min(
+    8,
+    'Please enter at least 8 Character, 1 uppercase character and 1 number',
+  )
+  .matches(
+    /[A-Z]+/,
+    'Please enter at least 8 Character, 1 uppercase character and 1 number',
+  )
+  // .matches(/[@$!%*#?&]+/, 'Password has special characters.')
+  .matches(
+    /\d+/,
+    'Please enter at least 8 Character, 1 uppercase character and 1 number',
+  )
+  .when('newPassword', {
+    is: val => (val && val.length > 0 ? true : false),
+    then: Yup.string().oneOf(
+      [Yup.ref('newPassword')],
+      'Both Password need to be the same.',
+    ),
+  }),
 })
 
 export class ChangePassword extends Component {
@@ -120,6 +163,16 @@ export class ChangePassword extends Component {
                           color: '#000',
                         }}
                       />
+                      {touched.oldPassword && errors.oldPassword && (
+                        <Text
+                          style={{
+                            fontSize: 12,
+                            color: 'red',
+                            marginTop: '2%',
+                          }}>
+                          {errors.oldPassword}
+                        </Text>
+                      )}
                     </View>
                     <View
                       style={{
@@ -178,6 +231,16 @@ export class ChangePassword extends Component {
                           color: '#000',
                         }}
                       />
+                       {touched.cNewPassword && errors.cNewPassword && (
+                        <Text
+                          style={{
+                            fontSize: 12,
+                            color: 'red',
+                            marginTop: '2%',
+                          }}>
+                          {errors.cNewPassword}
+                        </Text>
+                      )}
                     </View>
                   </View>
                   <View
@@ -199,15 +262,19 @@ export class ChangePassword extends Component {
                       width: '80%',
                       alignSelf: 'center',
                       height: getResHeight(40),
-                      backgroundColor: theme.color.primary,
+                      backgroundColor: !touched.oldPassword || errors.message || !touched.newPassword || errors.newPassword || !touched.cNewPassword || errors.cNewPassword || values.cNewPassword <8 ? theme.color.disabled:theme.color.primary,
                       margin: '5%',
                       borderRadius: 5,
                       marginTop: '8%',
                     }}
+                    disabledStyle={{
+                      backgroundColor: theme.color.disabled
+                    }}
+                    disabled={!touched.oldPassword || errors.message || !touched.newPassword || errors.newPassword || !touched.cNewPassword || errors.cNewPassword || values.cNewPassword <8}
                     titleStyle={{
                         fontFamily: theme.font.latoRegular,
                       fontSize: getFontSize(15),
-                      color: 'white',
+                      color: !touched.oldPassword || errors.message || !touched.newPassword || errors.newPassword || !touched.cNewPassword || errors.cNewPassword || values.cNewPassword <8  ? "white" : 'white',
                     }}
                     buttonStyle={{
                       height: '100%',

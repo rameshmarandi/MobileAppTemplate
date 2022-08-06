@@ -1,3 +1,9 @@
 {
-    "java.configuration.updateBuildConfiguration": "interactive"
+    "java.configuration.updateBuildConfiguration": "interactive",
+    "workbench.colorCustomizations": {
+        "[Community Material Theme High Contrast]": {},
+          "titleBar.activeForeground": "#ffffff",
+          "titleBar.inactiveForeground": "#fff702",
+          "titleBar.activeBackground": "#D21D5A"
+        },
 }

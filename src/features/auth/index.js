@@ -1,21 +1,26 @@
-import {createSlice} from '@reduxjs/toolkit';
+import { createSlice } from "@reduxjs/toolkit";
 
-import * as AuthAPIs from './authAPI';
-
-const initialState = {
-  user: {Details: {}},
-  BusinessDetails: {Details: {}},
-  AiabProductDetails: {Details: {}},
-  OTPDetails: {Details: {}},
+const initialState = { 
+  token : null,
+  coreUser: {},
+ 
 };
 
 const AuthSlice = createSlice({
-  name: 'Auth',
+  name: "Auth",
   initialState,
-  reducers: {},
+  reducers: {   
+    coreUserDetails: (state, { payload }) => {
+      state.coreUser = payload;
+    },
+    token: (state, { payload }) => {
+      state.token = payload;
+    },
+   
+  },
   extraReducers: {},
 });
 
-export const {} = AuthSlice.actions;
+export const { coreUserDetails ,token} = AuthSlice.actions;
 
 export default AuthSlice.reducer;

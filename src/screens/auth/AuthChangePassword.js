@@ -13,7 +13,7 @@ import {
   TouchableWithoutFeedback,
   NativeModules,
 } from 'react-native'
-// import {TextTrans, BtnTrans} from '../../../i18translater'
+import * as AuthAPI from '../../features/auth/authAPI'
 import {Formik} from 'formik'
 import {connect} from 'react-redux'
 import {Button, Input} from 'react-native-elements'
@@ -81,6 +81,8 @@ export class AuthChangePassword extends Component {
       ConfirmShowPassword: false,
       LoaderVisible: false,
       NextRScreen: false,
+      loader: false,
+      mobile: this.props.navigation.state.params.mobile,
     }
   }
 
@@ -117,10 +119,23 @@ export class AuthChangePassword extends Component {
                 </Text>
               </View>
               <Formik
-                initialValues={{phoneNo: '', password: ''}}
+                initialValues={{cPassword: '', password: ''}}
                 validationSchema={registrationSchema}
                 onSubmit={async values => {
-                  this.handleLogin(values.phoneNo, values.password)
+                 try{
+                  console.tron.log("Gio")
+                  this.setState({loader: true})
+                  const payload = {
+                    mobile: this.state.mobile,
+                    password: values.password
+                  }
+                  const res = await this.props.forgotPasswordAPI(payload)
+                  // this.props.navigation.navigate('Login')
+                  console.tron.log("ForgotPasswrod at font edn", res)
+                  this.setState({loader: true})
+                 }catch(e){
+                  console.tron.log(e);
+                 }
                 }}>
                 {({
                   handleChange,
@@ -300,7 +315,7 @@ export class AuthChangePassword extends Component {
                               <>
                                 <MaterialIcons
                                   name={'visibility'}
-                                  size={getFontSize(23)}
+                                  size={getFontSize(22)}
                                   color={'#666666'}
                                 />
                               </>
@@ -308,7 +323,7 @@ export class AuthChangePassword extends Component {
                               <>
                                 <MaterialIcons
                                   name={'visibility-off'}
-                                  size={getFontSize(23)}
+                                  size={getFontSize(22)}
                                   color={'#666666'}
                                 />
                               </>
@@ -318,32 +333,11 @@ export class AuthChangePassword extends Component {
                       </View>
 
                       <Button
+                      loader={this.state.loader}
                         title='Next'
-                        type='solid'
-                        // icon={setVectorIcon({
-                        //   type: 'AntDesign',
-                        //   name: 'arrowright',
-                        //   size: getFontSize(22),
-                        //   color:
-                        //     !touched.MobileNo ||
-                        //     errors.MobileNo ||
-                        //     this.state.pressLogin
-                        //       ? '#AAAAAA'
-                        //       : 'white',
-                        //   style: {
-                        //     marginLeft: 5,
-                        //   },
-                        // })}
-                        // iconRight={true}
-                        onPress={() => this.props.navigation.navigate('Home')}
-                        // disabled={
-                        //   !touched.MobileNo ||
-                        //   errors.MobileNo ||
-                        //   this.state.pressLogin
-                        // }
-                        disabledStyle={{
-                          backgroundColor: 'rgba(235, 163, 0, .2)',
-                        }}
+                        type='solid'   
+                        onPress={handleSubmit}                      
+                                    
                         containerStyle={[
                           {
                             width: '100%',
@@ -351,18 +345,24 @@ export class AuthChangePassword extends Component {
                             marginTop: '5%',
                             overflow: 'hidden',
                             opacity: 0.9,
-                          },
-                          !this.state.pressLogin && {elevation: 0},
+                          },                          
                         ]}
+                        disabledStyle={{
+                          backgroundColor: theme.color.disabled
+                        }}
+                        disabledTitleStyle={{
+                          color:theme.color.dimGray
+                        }}
+                        disabled={!touched.password || errors.password || !touched.cPassword || errors.cPassword || values.cPassword <8}
                         titleStyle={{
                           fontFamily: theme.font.latoRegular,
                           fontSize: getFontSize(16),
-                          color: 'white',
+                          color:  !touched.password || errors.password || !touched.cPassword || errors.cPassword || values.cPassword <8?theme.color.dimGray:'white',
                         }}
                         buttonStyle={{
                           width: '100%',
                           height: getResHeight(40),
-                          backgroundColor: '#62C9C9',
+                          backgroundColor:  !touched.password || errors.password || !touched.cPassword || errors.cPassword || values.cPassword <8?theme.color.disabled:theme.color.primary,
                           borderRadius: 8,
                         }}
                       />
@@ -494,8 +494,16 @@ export class AuthChangePassword extends Component {
   }
 }
 
-const mapStateToProps = state => ({})
 
-const mapDispatchToProps = {}
+const mapDispatchToProps = dispatch => {
+  return {
+    forgotPasswordAPI: payload => dispatch(AuthAPI.forgotPasswordAPI(payload))
+
+  }
+}
+
+const mapStateToProps = (state, props) => {
+  return {}
+}
 
 export default connect(mapStateToProps, mapDispatchToProps)(AuthChangePassword)

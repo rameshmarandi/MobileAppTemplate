@@ -6,13 +6,8 @@ import {
   TouchableOpacity,
   FlatList,
   View,
-  ScrollView,
-  TextInput,
-  TouchableWithoutFeedback,
-  NativeModules,
+ 
 } from 'react-native'
-import {TextTrans, BtnTrans} from '../../../i18translater'
-import {Formik} from 'formik'
 import {connect} from 'react-redux'
 import {SearchBar} from 'react-native-elements'
 import {Button, Input} from 'react-native-elements'
@@ -33,13 +28,16 @@ import {
   SCREENHEIGHT,
   SCREENWIDTH,
 } from '../../utility/responsive'
+import {
+  IMG_URL
+  } from '../../config/constants';
 import theme from '../../theme'
 import {ListHeader} from '../../commonrender/CommonRender'
-import {onChange} from 'react-native-reanimated'
-
+import * as categoriesAPI from '../../features/Categories/categoriesAPI'
+import * as AuthAPI from '../../features/auth/authAPI'
 import OfferCard from '../../components/OfferCard'
 import ViewPagerIndicator from '../../components/ViewPagerIndicator'
-import {DateSchema} from 'yup'
+
 export class HomePage extends Component {
   constructor (props) {
     super(props)
@@ -48,7 +46,11 @@ export class HomePage extends Component {
       searchValue: '',
     }
   }
-
+async componentDidMount (){
+  await this.props.getAllCategoriesAPI()
+  await this.props.getAllSubCategoriesAPI()
+  await this.props.getUserAPI()
+}
   render () {
     const SuperOfferData = [
       {
@@ -585,13 +587,14 @@ export class HomePage extends Component {
                 case 2:
                   return (
                     <Category
-                      data={CategoriesData}
+                      data={this.props.allcategories}
+                      // data={CategoriesData}
                       allOnPress={() => {
                         this.props.navigation.navigate('Categories')
                       }}
-                      singlePress={type => {
+                      singlePress={_id => {
                         this.props.navigation.navigate('SingleCategories', {
-                          type: type,
+                          id: _id,
                         })
                       }}
                     />
@@ -660,26 +663,23 @@ const Category = props => {
             allOnPress()
           }}
         />
-
-        <View
-          style={{
-            width: '100%',
-            alignItems: 'center',
-            paddingHorizontal: '6%',
-          }}>
+       
           <FlatList
             style={{
               marginTop: '8%',
             }}
-            contentContainerStyle={{}}
+            contentContainerStyle={{
+              
+            }}
             numColumns={4}
             showsHorizontalScrollIndicator={false}
             data={data}
             keyExtractor={item => item.id}
             renderItem={({item, index}) => (
               <>
+              {console.tron.log("Image Uerl",IMG_URL+ '/' + item.categoryImage[0])}
                 <TouchableOpacity
-                  onPress={() => singlePress(item.category)}
+                  onPress={() => singlePress(item._id)}
                   style={{
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -687,31 +687,49 @@ const Category = props => {
                   }}>
                   <View
                     style={{
-                      height: 70,
-                      width: 70,
+                      height:70,
+                      width:70,
                       backgroundColor: '#F2F2F2',
                       marginRight: '5%',
                       borderRadius: 50,
                       overflow: 'hidden',
                     }}>
-                    {item.renderIcon}
+                   <Image
+                   key={index}
+                   source={{
+                    uri:  IMG_URL+ '/' + item.categoryImage,
+                }}
+                style={{
+                  height: index == 0 ? getResHeight(120) : getResHeight(200),
+                  width: '100%',
+                   resizeMode: 'cover',
+                  marginBottom: '1.5%',
+                  borderRadius: 8,
+                }}
+              />
+                    {/* {item.renderIcon} */}
                   </View>
-                  <View>
+                  <View style={{
+                    width: '95%',
+                    marginTop: '5%',
+                  }}>
                     <Text
-                      style={{
+                      style={{                       
                         fontSize: getFontSize(12),
                         fontFamily: theme.font.regular,
-                        marginTop: '5%',
+                        
                         color: theme.color.darkGray,
+                        textAlign:"center"
                       }}>
-                      {item.category}
+                      {item.categoryName}
+                      {/* {item.category} */}
                     </Text>
                   </View>
                 </TouchableOpacity>
               </>
             )}
           />
-        </View>
+       
       </View>
     </>
   )
@@ -959,8 +977,17 @@ const SinglePopularProduct = props => {
   )
 }
 
-const mapStateToProps = state => ({})
+const mapDispatchToProps = dispatch => {
+  return {
+    getAllCategoriesAPI: payload => dispatch(categoriesAPI.getAllCategoriesAPI(payload)),
+    getAllSubCategoriesAPI: payload => dispatch(categoriesAPI.getAllSubCategoriesAPI(payload)),
+    getUserAPI: payload => dispatch(AuthAPI.getUserAPI(payload)),
+  }
+}
 
-const mapDispatchToProps = {}
-
+const mapStateToProps = (state, props) => {
+  return {
+    allcategories: state.Categories.allcategories,
+  }
+}
 export default connect(mapStateToProps, mapDispatchToProps)(HomePage)

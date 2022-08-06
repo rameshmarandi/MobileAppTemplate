@@ -14,7 +14,7 @@ import {
   TouchableWithoutFeedback,
   NativeModules,
 } from 'react-native'
-import NavigationHeader from '../../components/NavigationHeader'
+import * as AuthAPI from '../../features/auth/authAPI'
 import RNPaper from '../../components/PaperComponents'
 import {Formik} from 'formik'
 import {connect} from 'react-redux'
@@ -31,7 +31,17 @@ import {
 import theme from '../../theme'
 import * as Yup from 'yup'
 const registrationSchema = Yup.object().shape({
-  phoneNo: Yup.string()
+  fName: Yup.string()
+    .required('First name is required!')
+    .min(3, 'Minium 3 characters are required'),
+  lName: Yup.string()
+    .required('Last name is required!')
+    .min(3, 'Minium 3 characters are required'),
+  email: Yup.string()
+    .required('Email is required!')
+    .email('Please enter valid email'),
+
+    mobile: Yup.string()
     .matches(/^[0-9]+$/, 'Only number are allowed for this field')
     .min(10, 'Number is now below 10 digits!')
     .max(10, 'Number is now above 10 digits!')
@@ -82,6 +92,7 @@ export class Registration extends Component {
       ConfirmShowPassword: false,
       LoaderVisible: false,
       NextRScreen: false,
+      loader: false
     }
   }
 
@@ -183,11 +194,31 @@ export class Registration extends Component {
                       mobile: '',
                       password: '',
                       cPassword: '',
+                      otp: '',
                       Gender: 'Male',
                     }}
                     validationSchema={registrationSchema}
                     onSubmit={async values => {
-                      this.handleLogin(values.phoneNo, values.password)
+                      try{
+                        this.setState({loader: true})
+                        const payload = {
+                          firstname:values.fName,
+                          lastname:values.lName,
+                          email:values.email,
+                          mobile: values.mobile,
+                          password:values.password,
+                          otp:values.otp,                        
+                        }
+                        const res = await this.props.RegistrationAPI(payload)
+                        await AuthAPI.setUserSession(true)
+                        console.tron.log("Registration successfulres atfront", res)
+                          if(res?.payload == "success"){
+                           this.props.navigation.navigate("Home")
+                          }
+                          this.setState({loader: false})
+                      }catch(e){
+                        console.tron.log(e)
+                      }
                     }}>
                     {({
                       handleChange,
@@ -243,6 +274,16 @@ export class Registration extends Component {
                                       color: '#000',
                                     }}
                                   />
+                                  {touched.fName && errors.fName && (
+                                    <Text
+                                      style={{
+                                        fontSize: 12,
+                                        color: 'red',
+                                        marginTop: '2%',
+                                      }}>
+                                      {errors.fName}
+                                    </Text>
+                                  )}
                                 </View>
                                 <View
                                   style={{
@@ -278,6 +319,16 @@ export class Registration extends Component {
                                       color: '#000',
                                     }}
                                   />
+                                  {touched.lName && errors.lName && (
+                                    <Text
+                                      style={{
+                                        fontSize: 12,
+                                        color: 'red',
+                                        marginTop: '2%',
+                                      }}>
+                                      {errors.lName}
+                                    </Text>
+                                  )}
                                 </View>
                                 <View
                                   style={{
@@ -295,12 +346,12 @@ export class Registration extends Component {
                                     Email ID
                                   </Text>
                                   <TextInput
-                                    value={values.lName}
+                                    value={values.email}
                                     onFocus={() =>
-                                      setFieldTouched('lName', true)
+                                      setFieldTouched('email', true)
                                     }
                                     onChangeText={text =>
-                                      setFieldValue('lName', text)
+                                      setFieldValue('email', text)
                                     }
                                     style={{
                                       paddingRight: '4%',
@@ -313,6 +364,16 @@ export class Registration extends Component {
                                       color: '#000',
                                     }}
                                   />
+                                  {touched.email && errors.email && (
+                                    <Text
+                                      style={{
+                                        fontSize: 12,
+                                        color: 'red',
+                                        marginTop: '2%',
+                                      }}>
+                                      {errors.email}
+                                    </Text>
+                                  )}
                                 </View>
                                 <View
                                   style={{
@@ -368,12 +429,12 @@ export class Registration extends Component {
                                     <TextInput
                                       keyboardType={'numeric'}
                                       maxLength={10}
-                                      value={values.phoneNo}
+                                      value={values.mobile}
                                       onFocus={() =>
-                                        setFieldTouched('phoneNo', true)
+                                        setFieldTouched('mobile', true)
                                       }
                                       onChangeText={text =>
-                                        setFieldValue('phoneNo', text)
+                                        setFieldValue('mobile', text)
                                       }
                                       style={{
                                         fontSize: getFontSize(14),
@@ -385,23 +446,39 @@ export class Registration extends Component {
                                         color: '#000',
                                       }}
                                     />
-                                    {touched.phoneNo && errors.phoneNo && (
+                                    {touched.mobile && errors.mobile && (
                                       <Text
                                         style={{
                                           fontSize: 12,
                                           color: 'red',
                                           marginTop: '2%',
                                         }}>
-                                        {errors.phoneNo}
+                                        {errors.mobile}
                                       </Text>
                                     )}
                                     <TouchableOpacity
+                                      onPress={async () => {
+                                        try {                                          
+                                          const payload = {
+                                            mobile: values.mobile,                                           
+                                          }
+                                          console.tron.log("Before")
+                                          const res = await this.props.generateOtpAPI(payload)
+                                          if(res.payload){
+                                            alert(`Your OTP is: ${res.payload.otp}`)
+                                          }else{
+                                            alert("Please try again..")
+                                          }                                          
+                                        } catch (error) {
+                                          console.tron.log(errors)
+                                        }
+                                      }}
                                       disabled={
-                                        values.phoneNo?.length !== 10
+                                        values.mobile?.length !== 10
                                           ? true
                                           : false
                                       }
-                                      onPress={() => {}}
+                                 
                                       style={{
                                         flexDirection: 'row',
                                         alignItems: 'center',
@@ -412,7 +489,10 @@ export class Registration extends Component {
                                       <Text
                                         style={{
                                           fontSize: getFontSize(13),
-                                          color: theme.color.darkGray,
+                                          color:
+                                            values.mobile?.length !== 10
+                                              ? theme.color.darkGray
+                                              : theme.color.primary,
                                           fontFamily: theme.font.latoBold,
                                         }}>
                                         OTP
@@ -437,6 +517,8 @@ export class Registration extends Component {
                                   <View>
                                     <TextInput
                                       value={values.otp}
+                                      keyboardType={'numeric'}
+                                      maxLength={6}
                                       onFocus={() =>
                                         setFieldTouched('otp', true)
                                       }
@@ -468,8 +550,7 @@ export class Registration extends Component {
                                   {/* Forgot Password Section */}
                                   <TouchableOpacity
                                     sylte={{
-                                      width: '5%',
-                                      // marginTop: '3%',
+                                      width: '5%',                                     
                                       backgroundColor: 'red',
                                     }}>
                                     <Text
@@ -670,65 +751,127 @@ export class Registration extends Component {
                                 </View>
                               </>
                             )}
+                            {this.state.NextRScreen == false ? (
+                              <Button
 
-                            <Button
-                              title={
-                                this.state.NextRScreen == false
-                                  ? 'Next'
-                                  : 'Register'
-                              }
-                              type='solid'
-                              // icon={setVectorIcon({
-                              //   type: 'AntDesign',
-                              //   name: 'arrowright',
-                              //   size: getFontSize(22),
-                              //   color:
-                              //     !touched.MobileNo ||
-                              //     errors.MobileNo ||
-                              //     this.state.pressLogin
-                              //       ? '#AAAAAA'
-                              //       : 'white',
-                              //   style: {
-                              //     marginLeft: 5,
-                              //   },
-                              // })}
-                              // iconRight={true}
-                              onPress={() => {
-                                this.setState({NextRScreen: true})
-                                if (this.state.NextRScreen == true) {
-                                  this.props.navigation.navigate('Home')
+                                title={'Next'}
+                                type='solid'
+                                onPress={() => {
+                                  this.setState({NextRScreen: true})
+                                  if (this.state.NextRScreen == true) {
+                                    this.props.navigation.navigate('Home')
+                                  }
+                                }}
+                                disabled={
+                                  !touched.fName || errors.fName ||
+                                  !touched.lName || errors.lName ||
+                                  !touched.email || errors.email ||
+                                  !touched.Gender || errors.Gender
                                 }
-                              }}
-                              // disabled={
-                              //   !touched.MobileNo ||
-                              //   errors.MobileNo ||
-                              //   this.state.pressLogin
-                              // }
-                              disabledStyle={{
-                                backgroundColor: 'rgba(235, 163, 0, .2)',
-                              }}
-                              containerStyle={[
-                                {
+                                disabledStyle={{
+                                  backgroundColor: theme.color.disabled
+                                }}
+                                disabledTitleStyle={{
+                                  color:theme.color.dimGray
+                                }}
+                                containerStyle={[
+                                  {
+                                    width: '100%',
+                                    height: getResHeight(40),
+                                    marginTop: '5%',
+                                    overflow: 'hidden',
+                                    opacity: 0.9,
+                                  },
+                                  !this.state.pressLogin && {elevation: 0},
+                                ]}
+                                titleStyle={{
+                                  fontFamily: theme.font.latoRegular,
+                                  fontSize: getFontSize(15),
+                                  color:  
+                                    !touched.fName || errors.fName ||
+                                  !touched.lName || errors.lName ||
+                                  !touched.email || errors.email ||
+                                  !touched.Gender || errors.Gender? theme.color.dimGray:"white"
+                             
+                                }}
+                                buttonStyle={{
                                   width: '100%',
                                   height: getResHeight(40),
-                                  marginTop: '5%',
-                                  overflow: 'hidden',
-                                  opacity: 0.9,
-                                },
-                                !this.state.pressLogin && {elevation: 0},
-                              ]}
-                              titleStyle={{
-                                fontFamily: theme.font.latoRegular,
-                                fontSize: getFontSize(15),
-                                color: 'white',
-                              }}
-                              buttonStyle={{
-                                width: '100%',
-                                height: getResHeight(40),
-                                backgroundColor: '#62C9C9',
-                                borderRadius: 8,
-                              }}
-                            />
+                                  backgroundColor:   !touched.fName || errors.fName ||
+                                  !touched.lName || errors.lName ||
+                                  !touched.email || errors.email ||
+                                  !touched.Gender || errors.Gender? theme.color.disabled:theme.color.primary,
+                                  borderRadius: 8,
+                                }}
+                              />
+                            ) : (
+                              <Button
+                                title={'Register'}
+                                loader={this.state.loader}
+                                type='solid'
+                                onPress={handleSubmit}                                
+                                containerStyle={[
+                                  {
+                                    width: '100%',
+                                    height: getResHeight(40),
+                                    marginTop: '5%',
+                                    overflow: 'hidden',
+                                    opacity: 0.9,
+                                  },
+                                ]}                                
+                                disabledStyle={{
+                                  backgroundColor: theme.color.disabled
+                                }}
+                                disabledTitleStyle={{
+                                  color:theme.color.dimGray
+                                }}
+                                disabled={
+                                  !touched.mobile ||
+                                  errors.mobile ||
+                                  !touched.otp ||
+                                  errors.otp ||
+                                  !touched.password ||
+                                  errors.password ||
+                                  !touched.cPassword ||
+                                  errors.cPassword ||
+                                  values.otp?.length < 4 ||
+                                  values.cPassword?.length < 8
+                                }
+                                titleStyle={{
+                                  fontFamily: theme.font.latoRegular,
+                                  fontSize: getFontSize(15),
+                                  color:  
+                                  !touched.mobile ||
+                                  errors.mobile ||
+                                  !touched.otp ||
+                                  errors.otp ||
+                                  !touched.password ||
+                                  errors.password ||
+                                  !touched.cPassword ||
+                                  errors.cPassword ||
+                                  values.otp?.length < 4 ||
+                                  values.cPassword?.length < 8? theme.color.dimGray:"white"
+                             
+                                }}
+                                buttonStyle={{
+                                  width: '100%',
+                                  height: getResHeight(40),
+                                  backgroundColor:   !touched.mobile ||
+                                  errors.mobile ||
+                                  !touched.otp ||
+                                  errors.otp ||
+                                  !touched.password ||
+                                  errors.password ||
+                                  !touched.cPassword ||
+                                  errors.cPassword ||
+                                  values.otp?.length < 4 ||
+                                  values.cPassword?.length < 8? theme.color.disabled:theme.color.primary,
+                                  borderRadius: 8,
+                                }}
+
+                                
+                              />
+                            )}
 
                             <View
                               style={{
@@ -843,61 +986,60 @@ export class Registration extends Component {
                             </View>
                             {/* Login With Google  */}
                             <TouchableOpacity
-                    style={{
-                      width : "60%",
-                      alignSelf: 'center',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      borderRadius: 20,
-                      marginTop: '2%',                      
-                      
-                    }}>
-                    <View
-                      style={{
-                        borderWidth: 1,
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        borderColor: '#2962ff',
-                        borderRadius: 5,
-                      }}>
-                      <View
-                        style={{
-                          height: getResHeight(40),
-                          width: getResWidth(40),
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          backgroundColor: '#FFFFFF',
-                          borderRadius: 5,
-                        }}>
-                        <Image
-                          style={{
-                            height: getResHeight(30),
-                            width: getResWidth(20),
-                          }}
-                          source={require('../../assets/img/google_icon.png')}
-                        />
-                      </View>
-                      <View
-                        style={{
-                          height:getResHeight(40),
-                          backgroundColor: '#2962ff',
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                          paddingHorizontal: '5%',
-                          borderRightRadius: 5,
-                        }}>
-                        <Text
-                          style={{
-                            fontSize: getFontSize(13),                            
-                            marginBottom: '3%',
-                            color: '#FFFFFF',
-                            fontFamily: theme.font.latoBold
-                          }}>
-                          Signup with Google
-                        </Text>
-                      </View>
-                    </View>
-                  </TouchableOpacity>
+                              style={{
+                                width: '60%',
+                                alignSelf: 'center',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                borderRadius: 20,
+                                marginTop: '2%',
+                              }}>
+                              <View
+                                style={{
+                                  borderWidth: 1,
+                                  flexDirection: 'row',
+                                  alignItems: 'center',
+                                  borderColor: '#2962ff',
+                                  borderRadius: 5,
+                                }}>
+                                <View
+                                  style={{
+                                    height: getResHeight(40),
+                                    width: getResWidth(40),
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    backgroundColor: '#FFFFFF',
+                                    borderRadius: 5,
+                                  }}>
+                                  <Image
+                                    style={{
+                                      height: getResHeight(30),
+                                      width: getResWidth(20),
+                                    }}
+                                    source={require('../../assets/img/google_icon.png')}
+                                  />
+                                </View>
+                                <View
+                                  style={{
+                                    height: getResHeight(40),
+                                    backgroundColor: '#2962ff',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    paddingHorizontal: '5%',
+                                    borderRightRadius: 5,
+                                  }}>
+                                  <Text
+                                    style={{
+                                      fontSize: getFontSize(13),
+                                      marginBottom: '3%',
+                                      color: '#FFFFFF',
+                                      fontFamily: theme.font.latoBold,
+                                    }}>
+                                    Signup with Google
+                                  </Text>
+                                </View>
+                              </View>
+                            </TouchableOpacity>
                           </View>
                         </ScrollView>
                       </>
@@ -913,8 +1055,18 @@ export class Registration extends Component {
   }
 }
 
-const mapStateToProps = state => ({})
+const mapDispatchToProps = (dispatch) => {
+  return {
+    RegistrationAPI: payload => dispatch(AuthAPI.RegistrationAPI(payload)),
+    generateOtpAPI: payload => dispatch(AuthAPI.generateOtpAPI(payload))
+  };
+};
 
-const mapDispatchToProps = {}
+const mapStateToProps = (state, props) => {
+  return {
+  
+  };
+};
+
 
 export default connect(mapStateToProps, mapDispatchToProps)(Registration)

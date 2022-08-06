@@ -317,7 +317,7 @@ export class MyCart extends Component {
                         type: 'FontAwesome',
                         name: 'angle-right',
                         size: getFontSize(25),
-                        color: '#6A6A6A',
+                        color: values.coupon.length<1 ? '#6A6A6A' : theme.color.primary,
                       })}
                     />
                   </View>

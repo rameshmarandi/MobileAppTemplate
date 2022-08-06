@@ -34,12 +34,28 @@ import {Formik} from 'formik'
 import theme from '../../theme'
 import * as Yup from 'yup'
 const LoginSchema = Yup.object().shape({
-  mobile: Yup.string()
-    .matches(/^[0-9]+$/, 'Only number are allowed for this field')
-    .min(10, 'Number is now below 10 digits!')
-    .max(10, 'Number is now above 10 digits!')
-    .required('Mobile Number is required!'),
-  password: Yup.string().required('Password is required!'),
+  email: Yup.string()
+  .required("Email is required!")
+  .email("Please enter valid email"),
+mobile: Yup.string()
+.matches(/^[0-9]+$/, 'Only number are allowed for this field')
+.min(10, 'Number is now below 10 digits!')
+.max(10, 'Number is now above 10 digits!')
+.required('Mobile number is required!'),
+password: Yup.string()
+.min(
+  8,
+  'Please enter valid password!',
+)
+.matches(
+  /[A-Z]+/,
+  'Please enter valid password!',
+)
+// .matches(/[@$!%*#?&]+/, 'Password has special characters.')
+.matches(
+  /\d+/,
+  'Please enter valid password!',
+),
 })
 
 export class DeactivateAccount extends Component {
@@ -108,7 +124,7 @@ export class DeactivateAccount extends Component {
               <ScrollView 
                 showsVerticalScrollIndicator={false}
               style={{
-                marginBottom : "25%"
+                marginBottom : "20%"
               }} >
                 <View
                   style={{
@@ -137,6 +153,16 @@ export class DeactivateAccount extends Component {
                         color: '#000',
                       }}
                     />
+                     {touched.email && errors.email && (
+                      <Text
+                        style={{
+                          fontSize: 12,
+                          color: 'red',
+                          marginTop: '2%',
+                        }}>
+                        {errors.email}
+                      </Text>
+                    )}
                   </View>
                   <View
                     style={{
@@ -195,6 +221,16 @@ export class DeactivateAccount extends Component {
                         color: '#000',
                       }}
                     />
+                    {touched.password && errors.password && (
+                      <Text
+                        style={{
+                          fontSize: 12,
+                          color: 'red',
+                          marginTop: '2%',
+                        }}>
+                        {errors.password}
+                      </Text>
+                    )}
                   </View>
                 </View>
 
@@ -255,9 +291,13 @@ export class DeactivateAccount extends Component {
                       width: '80%',
                       alignSelf: 'center',
                       height: getResHeight(40),
-                      backgroundColor: theme.color.primary,
+                      backgroundColor: !touched.email || errors.email || !touched.phone || errors.phone ||!touched.password || errors.password || values.password<8 ? theme.color.disabled:theme.color.primary,
                       margin: '5%',
                       borderRadius: 3,                  
+                    }}
+                    disabled={!touched.email || errors.email || !touched.phone || errors.phone ||!touched.password || errors.password || values.password<8 }
+                    disabledStyle={{
+                      backgroundColor: theme.color.disabled
                     }}
                     titleStyle={{
                         fontFamily: theme.font.latoRegular,
